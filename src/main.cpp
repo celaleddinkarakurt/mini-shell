@@ -1,5 +1,4 @@
 #include <iostream>
-#include <optional>
 #include "command.hpp"
 
 int main(void)
@@ -11,6 +10,6 @@ int main(void)
     {
         running = run_command_cycle();
     }
-    
+
     return 0;
 }

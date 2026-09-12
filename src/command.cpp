@@ -48,7 +48,7 @@ Command parse_input(const std::string& input)
     return cmd;
 }
 
-std::optional<CommandResult> check_command(const Command& cmd)
+CommandResult check_command(const Command& cmd)
 {
     CommandResult cmdResult;
 
@@ -59,7 +59,7 @@ std::optional<CommandResult> check_command(const Command& cmd)
         {
             cmdResult = { INVALID_ARGUMENT_COUNT, cmd };
         }
-        else if (cmd.commands[0] != "file" || cmd.commands[0] != "folder")
+        else if (cmd.commands[0] != "file" && cmd.commands[0] != "folder")
         {
             cmdResult = { INVALID_ARGUMENT, cmd };
         }
@@ -126,22 +126,22 @@ bool handle_command_result(const CommandResult& cmdResult)
     switch (cmdResult.status)
     {
     case OK:
-        if (execute_command(cmdResult.cmd))
-            return true;
-        else
-            return false;
+        return execute_command(cmdResult.cmd);
     case UNKNOWN_COMMAND:
+        std::cout << "Unknown command";
         return true;
     case INVALID_ARGUMENT_COUNT:
+        std::cout << "Invalid argument count: " << cmdResult.cmd.commands.size() << '\n';
         return true;
     case INVALID_ARGUMENT:
+        std::cout << "Invalid argument: '" << cmdResult.cmd.commands[0] << "'\n";
         return true;
     default:
-        break;
+        return true;;
     }
 }
 
-bool execute_command(Command cmd)
+bool execute_command(const Command& cmd)
 {
     switch (cmd.commandType)
     {
@@ -155,10 +155,8 @@ bool execute_command(Command cmd)
         return true;
     case EXIT:
         return false;
-    case UNKNOWN:
-        return true;
     default:
-        break;
+        return true;
     }
 }
 
@@ -170,10 +168,7 @@ bool run_command_cycle()
     std::getline(std::cin, input);
 
     Command cmd = parse_input(input);
-    std::optional<CommandResult> cmdResult = check_command(cmd);
+    CommandResult cmdResult = check_command(cmd);
 
-    if (handle_command_result(*cmdResult))
-        return true;
-    else
-        return false;
+    return handle_command_result(cmdResult);
 }
