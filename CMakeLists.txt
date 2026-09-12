@@ -12,4 +12,5 @@ add_executable(text_editor
     src/editor.cpp
     src/file_manager.cpp
     src/command.cpp
+    src/app_state.cpp
 )

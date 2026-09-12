@@ -1,4 +1,5 @@
 #include "command.hpp"
+#include "file_manager.hpp"
 #include <iostream>
 #include <sstream>
 #include <vector>
@@ -128,7 +129,7 @@ bool handle_command_result(const CommandResult& cmdResult)
     case OK:
         return execute_command(cmdResult.cmd);
     case UNKNOWN_COMMAND:
-        std::cout << "Unknown command";
+        std::cout << "Unknown command\n";
         return true;
     case INVALID_ARGUMENT_COUNT:
         std::cout << "Invalid argument count: " << cmdResult.cmd.commands.size() << '\n';

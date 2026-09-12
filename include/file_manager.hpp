@@ -4,9 +4,20 @@
 #include <string>
 #include <vector>
 
-void create_file(const std::string& fileName);
-std::vector<std::string> open_file(const std::string& fileName);
-void delete_file(const std::string& fileName);
-void rename_file(const std::string& oldName, const std::string& newName);
+enum FileStatus
+{
+    SUCCESS,
+    NOT_FOUND,
+    ALREADY_EXIST,
+    PERMISSION_DENIED,
+    CANNOT_CREATE,
+    UNKNOWN_ERROR
+};
+
+FileStatus create_file(const std::string& fileName);
+FileStatus create_folder(const std::string& folderName);
+FileStatus delete_file(const std::string& fileName);
+FileStatus rename_file(const std::string& oldName, const std::string& newName);
+
 
 #endif
