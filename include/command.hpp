@@ -2,6 +2,7 @@
 #define COMMAND_HPP
 
 #include <vector>
+#include "mode.hpp"
 
 enum CommandTypes
 {
@@ -37,8 +38,8 @@ typedef struct
 
 Command parse_input(const std::string& input);
 CommandResult check_command(const Command& cmd);
-bool handle_command_result(const CommandResult& cmdResult);
-bool execute_command(const Command& cmd);
-bool run_command_cycle();
+void handle_command_result(const CommandResult& cmdResult, Mode& mode, bool& running);
+void execute_command(const Command& cmd, Mode& mode, bool& running);
+void run_command_cycle(bool& running, Mode& mode);
 
 #endif

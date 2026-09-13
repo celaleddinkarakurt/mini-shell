@@ -151,7 +151,19 @@ FileStatus rename_path(const std::string& oldName, const std::string& newName)
         return NOT_FOUND;
     }
 
-    if (fs::exists(new_path, ec))
+    exists = fs::exists(new_path, ec);
+
+    if (ec)
+    {
+        if (ec == std::errc::permission_denied)
+        {
+            return PERMISSION_DENIED;
+        }
+
+        return UNKNOWN_ERROR;
+    }
+
+    if (exists)
     {
         return ALREADY_EXISTS;
     }
@@ -169,4 +181,50 @@ FileStatus rename_path(const std::string& oldName, const std::string& newName)
     }
 
     return SUCCESS;
+}
+
+FileReadResult read_file(const std::string& fileName)
+{
+    FileReadResult result;
+    std::vector<std::string> content;
+
+    fs::path path = fs::path(get_path()) / fileName;
+    std::error_code ec;
+
+    bool exists = fs::exists(path, ec);
+    
+    if (ec)
+    {
+        if (ec == std::errc::permission_denied)
+        {
+            result = { PERMISSION_DENIED, content };
+            return result;
+        }
+
+        result = { UNKNOWN_ERROR, content};
+        return result;
+    }
+
+    if (!exists)
+    {
+        result = { NOT_FOUND, content };
+        return result;
+    }
+
+    std::ifstream file(path);
+
+    if (!file.is_open())
+    {
+        result = { CANNOT_OPEN, content };
+        return result;
+    }
+
+    std::string line;
+    while (std::getline(file, line))
+    {
+        content.push_back(line);
+    }
+    
+    result = { SUCCESS, content };
+    return result;
 }

@@ -5,7 +5,7 @@ all:
 	@cmake --build build
 
 run: all
-	@./build/text_editor
+	@./build/irm
 
 clean:
 	@rm -rf build

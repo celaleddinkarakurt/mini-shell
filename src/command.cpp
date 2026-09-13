@@ -1,8 +1,10 @@
 #include "command.hpp"
 #include "file_manager.hpp"
+#include "editor.hpp"
 #include <iostream>
 #include <sstream>
 #include <vector>
+#include <utility>
 
 Command parse_input(const std::string& input)
 {
@@ -23,31 +25,31 @@ Command parse_input(const std::string& input)
 
     if (commandType == "create")
     {
-        cmd = { CREATE, commands};
+        cmd = { CommandTypes::CREATE, commands};
     }
     else if (commandType == "open")
     {
-        cmd = { OPEN, commands };
+        cmd = { CommandTypes::OPEN, commands };
     }
     else if (commandType == "delete")
     {
-        cmd = { DELETE, commands};
+        cmd = { CommandTypes::DELETE, commands};
     }
     else if (commandType == "rename")
     {
-        cmd = { RENAME, commands };
+        cmd = { CommandTypes::RENAME, commands };
     }
     else if (commandType == "image")
     {
-        cmd = { IMAGE, commands };
+        cmd = { CommandTypes::IMAGE, commands };
     }
     else if (commandType == "exit")
     {
-        cmd = { EXIT, commands };
+        cmd = { CommandTypes::EXIT, commands };
     }
     else
     {
-        cmd = { UNKNOWN, commands};
+        cmd = { CommandTypes::UNKNOWN, commands};
     }
 
     return cmd;
@@ -59,197 +61,220 @@ CommandResult check_command(const Command& cmd)
 
     switch (cmd.commandType)
     {
-    case CREATE:
-        if (cmd.commands.size() != 2)
-        {
-            cmdResult = { INVALID_ARGUMENT_COUNT, cmd };
-        }
-        else if (cmd.commands[0] != "file" && cmd.commands[0] != "folder")
-        {
-            cmdResult = { INVALID_ARGUMENT, cmd };
-        }
-        else{
-            cmdResult = { OK, cmd};
-        }
+        case CommandTypes::CREATE:
+            if (cmd.commands.size() != 2)
+            {
+                cmdResult = { CommandStatus::INVALID_ARGUMENT_COUNT, cmd };
+            }
+            else if (cmd.commands[0] != "file" && cmd.commands[0] != "folder")
+            {
+                cmdResult = { CommandStatus::INVALID_ARGUMENT, cmd };
+            }
+            else{
+                cmdResult = { CommandStatus::OK, cmd};
+            }
 
-        break;
-    case OPEN:
-        if (cmd.commands.size() != 1)
-        {
-            cmdResult = { INVALID_ARGUMENT_COUNT, cmd };
-        }
-        else
-        {
-            cmdResult = { OK, cmd };
-        }
+            break;
+        case CommandTypes::OPEN:
+            if (cmd.commands.size() != 1)
+            {
+                cmdResult = { CommandStatus::INVALID_ARGUMENT_COUNT, cmd };
+            }
+            else
+            {
+                cmdResult = { CommandStatus::OK, cmd };
+            }
 
-        break;
-    case DELETE:
-        if (cmd.commands.size() != 1)
-        {
-            cmdResult = { INVALID_ARGUMENT_COUNT, cmd };
-        }
-        else
-        {
-            cmdResult = { OK, cmd };
-        }
+            break;
+        case CommandTypes::DELETE:
+            if (cmd.commands.size() != 1)
+            {
+                cmdResult = { CommandStatus::INVALID_ARGUMENT_COUNT, cmd };
+            }
+            else
+            {
+                cmdResult = { CommandStatus::OK, cmd };
+            }
 
-        break;
-    case RENAME:
-        if (cmd.commands.size() != 2)
-        {
-            cmdResult = { INVALID_ARGUMENT_COUNT, cmd };
-        }
-        else
-        {
-            cmdResult = { OK, cmd };
-        }
+            break;
+        case CommandTypes::RENAME:
+            if (cmd.commands.size() != 2)
+            {
+                cmdResult = { CommandStatus::INVALID_ARGUMENT_COUNT, cmd };
+            }
+            else
+            {
+                cmdResult = { CommandStatus::OK, cmd };
+            }
 
-        break;
-    case IMAGE:
-        if (cmd.commands.size() != 1)
-        {
-            cmdResult = { INVALID_ARGUMENT_COUNT, cmd };
-        }
-        else
-        {
-            cmdResult = { OK, cmd };
-        }
+            break;
+        case CommandTypes::IMAGE:
+            if (cmd.commands.size() != 1)
+            {
+                cmdResult = { CommandStatus::INVALID_ARGUMENT_COUNT, cmd };
+            }
+            else
+            {
+                cmdResult = { CommandStatus::OK, cmd };
+            }
 
-        break;
-    case EXIT:
-        if (cmd.commands.size() != 0)
-        {
-            cmdResult = { INVALID_ARGUMENT_COUNT, cmd };
-        }
-        else
-        {
-            cmdResult = { OK, cmd };
-        }
+            break;
+        case CommandTypes::EXIT:
+            if (cmd.commands.size() != 0)
+            {
+                cmdResult = { CommandStatus::INVALID_ARGUMENT_COUNT, cmd };
+            }
+            else
+            {
+                cmdResult = { CommandStatus::OK, cmd };
+            }
 
-        break;
-    default:
-        cmdResult = { UNKNOWN_COMMAND, cmd};    
+            break;
+        default:
+            cmdResult = { CommandStatus::UNKNOWN_COMMAND, cmd};    
 
-        break;
+            break;
     }
 
     return cmdResult;
 }
 
-bool handle_command_result(const CommandResult& cmdResult)
+void handle_command_result(const CommandResult& cmdResult, Mode& mode, bool& running)
 {
     switch (cmdResult.status)
     {
-    case OK:
-        return execute_command(cmdResult.cmd);
-    case UNKNOWN_COMMAND:
-        std::cout << "Unknown command.\n";
-        return true;
-    case INVALID_ARGUMENT_COUNT:
-        std::cout << "Invalid argument count: " << cmdResult.cmd.commands.size() << '\n';
-        return true;
-    case INVALID_ARGUMENT:
-        std::cout << "Invalid argument: '" << cmdResult.cmd.commands[0] << "'\n";
-        return true;
-    default:
-        return true;;
+        case CommandStatus::OK:
+            execute_command(cmdResult.cmd, mode, running);
+            break;
+        case CommandStatus::UNKNOWN_COMMAND:
+            std::cout << "Unknown command.\n";
+            break;
+        case CommandStatus::INVALID_ARGUMENT_COUNT:
+            std::cout << "Invalid argument count: " << cmdResult.cmd.commands.size() << '\n';
+            break;
+        case CommandStatus::INVALID_ARGUMENT:
+            std::cout << "Invalid argument: '" << cmdResult.cmd.commands[0] << "'\n";
+            break;
+        default:
+            break;
     }
 }
 
-bool execute_command(const Command& cmd)
+void execute_command(const Command& cmd, Mode& mode, bool& running)
 {
     FileStatus result;
 
     switch (cmd.commandType)
     {
-    case CREATE:
-        if (cmd.commands[0] == "file")
-        {
-            result = create_file(cmd.commands[1]);
-        }
-        else if (cmd.commands[0] == "folder")
-        {
-            result = create_folder(cmd.commands[1]);
-        }
+        case CommandTypes::CREATE:
+            if (cmd.commands[0] == "file")
+            {
+                result = create_file(cmd.commands[1]);
+            }
+            else if (cmd.commands[0] == "folder")
+            {
+                result = create_folder(cmd.commands[1]);
+            }
 
-        switch (result)
-        {
-        case SUCCESS:
-            std::cout << "Successfully created!\n";
+            switch (result)
+            {
+                case FileStatus::SUCCESS:
+                    std::cout << "Successfully created!\n";
+                    break;
+                case FileStatus::ALREADY_EXISTS:
+                    std::cout << "'" << cmd.commands[1] << "' already exists.\n";
+                    break;
+                case FileStatus::PERMISSION_DENIED:
+                    std::cout << "Permission denied.\n";
+                    break;
+                case FileStatus::CANNOT_CREATE:
+                    std::cout << "'" << cmd.commands[1] <<"' cannot created.\n";
+                    break;
+                default:
+                    std::cout << "An error occurred.\n";
+                    break;
+            }
+
             break;
-        case ALREADY_EXISTS:
-            std::cout << "'" << cmd.commands[1] << "' is already exists.\n";
+        case CommandTypes::OPEN:
+            {
+                FileReadResult read_result = read_file(cmd.commands[0]);
+
+                switch (read_result.status)
+                {
+                    case FileStatus::SUCCESS:
+                    {
+                        mode = { ModeType::EDITOR, Editor{ {0, 0}, std::move(read_result.content) }};
+
+                        break;
+                    }
+                    case FileStatus::NOT_FOUND:
+                        break;
+                    case FileStatus::PERMISSION_DENIED:
+                        break;         
+                    default:
+                        std::cout << "An error occurred.\n";
+                        break;
+                }
+                
+                break;
+            }    
+        case CommandTypes::DELETE:
+            result = delete_path(cmd.commands[0]);
+
+            switch (result)
+            {
+                case FileStatus::SUCCESS:
+                    std::cout << "Successfully deleted!\n";
+                    break;
+                case FileStatus::NOT_FOUND:
+                    std::cout << "'" << cmd.commands[0] << "' not found.\n";
+                    break;
+                case FileStatus::PERMISSION_DENIED:
+                    std::cout << "Permission denied.\n";
+                    break;
+                default:
+                    std::cout << "An error occurred.\n";
+                    break;
+            }
+
             break;
-        case PERMISSION_DENIED:
-            std::cout << "Permission denied.\n";
+        case CommandTypes::RENAME:
+            result = rename_path(cmd.commands[0], cmd.commands[1]);
+
+            switch (result)
+            {
+                case FileStatus::SUCCESS:
+                    std::cout << "Successfully changed!\n";
+                    break;
+                case FileStatus::NOT_FOUND:
+                    std::cout << "'" << cmd.commands[0] << "' not found.\n";
+                    break;
+                case FileStatus::ALREADY_EXISTS:
+                    std::cout << "'" << cmd.commands[1] << "' already exists.\n";
+                    break;
+                case FileStatus::PERMISSION_DENIED:
+                    std::cout << "Permission denied.\n";
+                    break;
+                default:
+                    std::cout << "An error occurred.\n";
+                    break;
+            }
+
             break;
-        case CANNOT_CREATE:
-            std::cout << "'" << cmd.commands[1] <<"' is cannot created.\n";
+        case CommandTypes::IMAGE:
+                
+
+            break;
+        case CommandTypes::EXIT:
+            running = false;
             break;
         default:
-            std::cout << "An error occured.\n";
             break;
-        }
-
-        return true;
-    case OPEN:
-        return true;
-    case DELETE:
-        result = delete_path(cmd.commands[0]);
-
-        switch (result)
-        {
-        case SUCCESS:
-            std::cout << "Successfully deleted!\n";
-            break;
-        case NOT_FOUND:
-            std::cout << "'" << cmd.commands[0] << "' is not found.\n";
-            break;
-        case PERMISSION_DENIED:
-            std::cout << "Permission denied.\n";
-            break;
-        default:
-            std::cout << "An error occured.\n";
-            break;
-        }
-
-        return true;
-    case RENAME:
-        result = rename_path(cmd.commands[0], cmd.commands[1]);
-
-        switch (result)
-        {
-        case SUCCESS:
-            std::cout << "Successfully changed!\n";
-            break;
-        case NOT_FOUND:
-            std::cout << "'" << cmd.commands[0] << "' is not found.\n";
-            break;
-        case ALREADY_EXISTS:
-            std::cout << "'" << cmd.commands[1] << "' is already exists.\n";
-            break;
-        case PERMISSION_DENIED:
-            std::cout << "Permission denied.\n";
-            break;
-        default:
-            std::cout << "An error occured.\n";
-            break;
-        }
-
-        return true;
-    case IMAGE:
-            
-
-        return true;
-    case EXIT:
-        return false;
-    default:
-        return true;
     }
 }
 
-bool run_command_cycle()
+void run_command_cycle(bool& running, Mode& mode)
 {
     std::string input;
 
@@ -259,5 +284,5 @@ bool run_command_cycle()
     Command cmd = parse_input(input);
     CommandResult cmdResult = check_command(cmd);
 
-    return handle_command_result(cmdResult);
+    handle_command_result(cmdResult, mode, running);
 }
