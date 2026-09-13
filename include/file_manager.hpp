@@ -8,7 +8,7 @@ enum FileStatus
 {
     SUCCESS,
     NOT_FOUND,
-    ALREADY_EXIST,
+    ALREADY_EXISTS,
     PERMISSION_DENIED,
     CANNOT_CREATE,
     UNKNOWN_ERROR
@@ -16,8 +16,8 @@ enum FileStatus
 
 FileStatus create_file(const std::string& fileName);
 FileStatus create_folder(const std::string& folderName);
-FileStatus delete_file(const std::string& fileName);
-FileStatus rename_file(const std::string& oldName, const std::string& newName);
+FileStatus delete_path(const std::string& pathName);
+FileStatus rename_path(const std::string& oldName, const std::string& newName);
 
 
 #endif

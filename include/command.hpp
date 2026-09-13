@@ -9,6 +9,7 @@ enum CommandTypes
     OPEN,
     DELETE,
     RENAME,
+    IMAGE,
     EXIT,
     UNKNOWN
 };

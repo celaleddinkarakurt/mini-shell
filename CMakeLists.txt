@@ -13,4 +13,5 @@ add_executable(text_editor
     src/file_manager.cpp
     src/command.cpp
     src/app_state.cpp
+    src/image_viewer.cpp
 )
